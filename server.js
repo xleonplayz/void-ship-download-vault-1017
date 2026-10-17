@@ -3,7 +3,7 @@ import {release} from './policy.js';
 import {html,client} from './ui.js';
 
 const sizes={sample:257,manual:131329,archive:1048593};
-const modified='Sat, 17 Oct 2026 12:00:00 GMT';
+const modified=release===1?'Sat, 17 Oct 2026 12:00:00 GMT':'Sat, 17 Oct 2026 13:00:00 GMT';
 function bytes(size){const b=Buffer.alloc(size);for(let i=0;i<size;i++)b[i]=(i*37+Math.floor(i/251)+release*17)%256;return b;}
 const files=Object.fromEntries(Object.entries(sizes).map(([id,size])=>[id,{id,size,etag:'"vault-r'+release+'-'+id+'-'+size+'"',bytes:bytes(size)}]));
 function matches(value,tag,weak){return value.split(',').some(x=>{x=x.trim();return x==='*'||(weak?x.replace(/^W\//,'')===tag:x===tag);});}
