@@ -5,7 +5,7 @@ import {html,client} from './ui.js';
 const sizes={sample:257,manual:131329,archive:1048593};
 const modified=release===1?'Sat, 17 Oct 2026 12:00:00 GMT':'Sat, 17 Oct 2026 13:00:00 GMT';
 function bytes(size){const b=Buffer.alloc(size);for(let i=0;i<size;i++)b[i]=(i*37+Math.floor(i/251)+release*17)%256;return b;}
-const files=Object.fromEntries(Object.entries(sizes).map(([id,size])=>[id,{id,size,etag:'"vault-r'+release+'-'+id+'-'+size+'"',bytes:bytes(size)}]));
+const files=Object.fromEntries(Object.entries(sizes).map(([id,size])=>[id,{id,size,etag:'"vault-r'+release+'-'+id+'-'+size+'"'}]));
 function matches(value,tag,weak){return value.split(',').some(x=>{x=x.trim();return x==='*'||(weak?x.replace(/^W\//,'')===tag:x===tag);});}
 const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://vault.local');
@@ -29,10 +29,10 @@ const server=http.createServer((req,res)=>{
    let start=r[1]?Number(r[1]):Math.max(0,f.size-Number(r[2]));
    let end=r[1]?(r[2]?Math.min(Number(r[2]),f.size-1):f.size-1):f.size-1;
    if(!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start>=f.size||end<start||(!r[1]&&Number(r[2])===0))return reply(416,{...h,'content-range':'bytes */'+f.size,'content-length':'0'},'');
-   const part=f.bytes.subarray(start,end+1);
+   const part=bytes(f.size).subarray(start,end+1);
    return reply(206,{...h,'content-range':`bytes ${start}-${end}/${f.size}`,'content-length':String(part.length)},part);
   }
  }
- return reply(200,{...h,'content-length':String(f.size)},f.bytes);
+ return reply(200,{...h,'content-length':String(f.size)},req.method==='HEAD'?'':bytes(f.size));
 });
 server.listen(Number(process.env.PORT||3000),'0.0.0.0',()=>console.log('vault_ready release='+release));
