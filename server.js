@@ -14,6 +14,13 @@ const server=http.createServer((req,res)=>{
  if(url.pathname==='/')return reply(200,{'content-type':'text/html; charset=utf-8'},html);
  if(url.pathname==='/client.js')return reply(200,{'content-type':'text/javascript; charset=utf-8'},client);
  if(url.pathname==='/health')return reply(200,{'content-type':'application/json'},JSON.stringify({ok:true,release}));
+ if(url.pathname==='/diagnostic/text')return reply(200,{'content-type':'text/plain'},'ABCD');
+ if(url.pathname==='/diagnostic/literal')return reply(200,{'content-type':'application/octet-stream'},Buffer.from([0,127,128,255]));
+ if(url.pathname==='/diagnostic/ascii')return reply(200,{'content-type':'application/octet-stream'},Buffer.from('ABCD'));
+ if(url.pathname==='/diagnostic/filled')return reply(200,{'content-type':'application/octet-stream'},Buffer.alloc(4,65));
+ if(url.pathname==='/diagnostic/generated')return reply(200,{'content-type':'application/octet-stream'},bytes(4));
+ if(url.pathname==='/diagnostic/generated-json'){const b=bytes(4);return reply(200,{'content-type':'application/json'},JSON.stringify([b[0],b[1],b[2],b[3]]));}
+ if(url.pathname==='/diagnostic/loop-json'){const b=[];for(let i=0;i<4;i++)b.push((i*37+Math.floor(i/251)+release*17)%256);return reply(200,{'content-type':'application/json'},JSON.stringify(b));}
  if(url.pathname==='/api/files')return reply(200,{'content-type':'application/json','cache-control':'no-store'},JSON.stringify({release,files:Object.values(files).map(({id,size,etag})=>({id,size,etag,path:'/files/'+id+'.bin'}))}));
  const m=/^\/files\/(sample|manual|archive)\.bin$/.exec(url.pathname);
  if(!m)return reply(404,{'content-type':'application/json'},'{"error":"not_found"}');
